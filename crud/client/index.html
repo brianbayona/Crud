@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas - Ejercicio CRUD & DOM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Encabezado principal -->
+        <header class="header">
+            <h1 class="header__title">Gestor de Tareas</h1>
+            <p class="header__subtitle">Identificando el ciclo completo de un CRUD con Vanilla JS</p>
+        </header>
+
+        <!-- Formulario de entrada -->
+        <section class="form-section">
+            <div class="card">
+                <h2 class="card__title">Nueva Tarea</h2>
+                
+                <form id="messageForm" class="form" novalidate>
+                    <div class="form__group">
+                        <label for="userName" class="form__label">
+                            Título de la Tarea
+                        </label>
+                        <input 
+                            type="text" 
+                            id="userName" 
+                            class="form__input" 
+                            placeholder="Ej. Estudiar Fetch API en JavaScript"
+                            aria-required="true"
+                        >
+                        <span class="form__error" id="userNameError"></span>
+                    </div>
+
+                    <div class="form__group">
+                        <label for="userMessage" class="form__label">
+                            Descripción de la Tarea
+                        </label>
+                        <textarea 
+                            id="userMessage" 
+                            class="form__input form__textarea" 
+                            placeholder="Escribe los detalles o notas de la tarea aquí..."
+                            rows="4"
+                            aria-required="true"
+                        ></textarea>
+                        <span class="form__error" id="userMessageError"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn--primary" id="submitBtn">
+                        <span class="btn__text">Guardar Tarea</span>
+                        <span class="btn__icon">➤</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Área de visualización del CRUD -->
+        <section class="messages-section">
+            <div class="messages-header">
+                <h2 class="messages-header__title">Lista de Tareas (API)</h2>
+                <span class="messages-header__count" id="messageCount">0 Tareas</span>
+            </div>
+            
+            <div id="messagesContainer" class="messages-container">
+                <!-- Las tareas que traigas de la API se inyectarán aquí dinámicamente con JS -->
+                
+                <div class="messages-empty" id="emptyState">
+                    <svg class="messages-empty__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <p class="messages-empty__text">No hay tareas pendientes</p>
+                    <p class="messages-empty__subtext">Usa el formulario superior para enviar una solicitud POST a la API</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer informativo -->
+        <footer class="footer">
+            <p class="footer__text">Actividad CRUD | SENA - Análisis y Desarrollo de Software</p>
+        </footer>
+    </div>
+
+    <!-- Enlace a tu script de lógica -->
+    <script src="script.js"></script>
+</body>
+</html>
