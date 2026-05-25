@@ -284,6 +284,38 @@ body {
     font-size: var(--font-size-lg);
 }
 
+.btn--edit {
+    background-color: var(--color-info);
+    color: white;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn--edit:hover {
+    background-color: #2563eb;
+    box-shadow: var(--shadow-md);
+}
+
+.btn--delete {
+    background-color: var(--color-error);
+    color: white;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    margin-left: var(--spacing-xs);
+}
+
+.btn--delete:hover {
+    background-color: #dc2626;
+    box-shadow: var(--shadow-md);
+}
+
+.message-card__actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
 /* ============================================
    SECCIÓN DE MENSAJES
    ============================================ */
