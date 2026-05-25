@@ -1,141 +1,275 @@
-/**
- * ============================================
- * ACTIVIDAD: CICLO COMPLETO DE UN CRUD
- * ============================================
- * 
- * Objetivo: Identificar el ciclo de vida de un CRUD conectándose a una API.
- * Autor: Brian Mauricio Bayona Ravelo
- * ============================================
- */
+const API_URL = 'http://localhost:3001/todos';
 
-// URL base de la API de prueba (JSONPlaceholder)
-const API_URL = 'https://jsonplaceholder.typicode.com/todos';
-
-// ============================================
-// 1. SELECCIÓN DE ELEMENTOS DEL DOM
-// ============================================
 const messageForm = document.getElementById('messageForm');
-const userNameInput = document.getElementById('userName'); // Lo usaremos como Título de la tarea
-const userMessageInput = document.getElementById('userMessage'); // Lo usaremos como Descripción
+const userNameInput = document.getElementById('userName');
+const userMessageInput = document.getElementById('userMessage');
 const submitBtn = document.getElementById('submitBtn');
-
 const userNameError = document.getElementById('userNameError');
 const userMessageError = document.getElementById('userMessageError');
-
 const messagesContainer = document.getElementById('messagesContainer');
 const emptyState = document.getElementById('emptyState');
 const messageCount = document.getElementById('messageCount');
 
-// Array local para manejar las tareas en la memoria del navegador
 let localTasks = [];
 
-
-// ============================================
-// 2. FUNCIONES DE COMUNICACIÓN CON LA API (CRUD)
-// ============================================
-
-/**
- * READ: Obtiene las primeras 5 tareas de la API al cargar la página.
- * Pista: Usa fetch(`${API_URL}?_limit=5`), verifica la respuesta con un 
- * console.log y luego guarda el resultado para renderizarlo.
- */
 function fetchTasks() {
-    // TODO: Implementar petición GET a la API
+    console.log('--- READ ---');
+    console.log('GET ' + API_URL + '?_limit=5');
+
+    fetch(API_URL + '?_limit=5')
+        .then(response => {
+            console.log('Respuesta:', response.status);
+            if (!response.ok) throw new Error('Error al obtener tareas');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos:', data);
+
+            localTasks = data.map(task => ({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                completed: task.completed
+            }));
+
+            renderTasks();
+        })
+        .catch(error => console.error('Error en fetchTasks:', error));
 }
 
-/**
- * CREATE: Envía una nueva tarea al servidor usando el método POST.
- * @param {string} title - El título de la tarea obtenido del input
- * @param {string} description - La descripción de la tarea obtenida del textarea
- */
 function createTask(title, description) {
-    // TODO: Implementar petición POST
-    // Pista: Recuerda enviar el método, los headers y el body convertido a JSON.stringify()
-    // Al recibir la respuesta del servidor, añade la tarea a 'localTasks' y vuelve a listar.
+    console.log('--- CREATE ---');
+    console.log('POST ' + API_URL);
+
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            title: title,
+            description: description,
+            completed: false,
+            userId: 1
+        })
+    })
+        .then(response => {
+            console.log('Respuesta:', response.status);
+            if (!response.ok) throw new Error('Error al crear tarea');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Creada en DB:', data);
+
+            localTasks.unshift({
+                id: data.id,
+                title: title,
+                description: description || 'Sin descripcion',
+                completed: false
+            });
+
+            renderTasks();
+        })
+        .catch(error => console.error('Error en createTask:', error));
 }
 
-/**
- * UPDATE: Modifica el título de una tarea específica mediante PUT o PATCH.
- * @param {number} id - El identificador único de la tarea a modificar
- */
 function updateTask(id) {
-    // TODO: Implementar petición PATCH o PUT
-    // Pista 1: Usa un prompt() para pedirle al usuario el nuevo nombre.
-    // Pista 2: La URL de destino debe incluir el id (ej: `${API_URL}/${id}`).
-    // Al recibir confirmación de la API, actualiza el array local y refresca el DOM.
+    console.log('--- UPDATE ---');
+    console.log('ID:', id);
+
+    const task = localTasks.find(t => t.id === id);
+    if (!task) {
+        console.error('Tarea no encontrada en localTasks');
+        return;
+    }
+
+    const newTitle = prompt('Nuevo titulo:', task.title);
+    if (newTitle === null) return;
+
+    const trimmedTitle = newTitle.trim();
+    if (trimmedTitle === '') {
+        alert('El titulo no puede estar vacio.');
+        return;
+    }
+
+    const newDesc = prompt('Nueva descripcion:', task.description);
+    if (newDesc === null) return;
+
+    const trimmedDesc = newDesc.trim();
+
+    const dataToSend = {
+        title: trimmedTitle,
+        description: trimmedDesc
+    };
+
+    console.log('PATCH ' + API_URL + '/' + id);
+    console.log('Datos:', JSON.stringify(dataToSend));
+
+    fetch(API_URL + '/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+    })
+        .then(response => {
+            console.log('Respuesta:', response.status);
+            if (!response.ok) throw new Error('Error al actualizar tarea');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Actualizada en DB:', data);
+
+            task.title = trimmedTitle;
+            task.description = trimmedDesc;
+            renderTasks();
+        })
+        .catch(error => console.error('Error en updateTask:', error));
 }
 
-/**
- * DELETE: Elimina una tarea del servidor y de la interfaz.
- * @param {number} id - El identificador único de la tarea a eliminar
- */
 function deleteTask(id) {
-    // TODO: Implementar petición DELETE
-    // Pista: Envía la petición fetch a la URL con el id y especifica el método 'DELETE'.
-    // Tras la respuesta exitosa, saca el elemento de 'localTasks' y vuelve a listar.
+    console.log('--- DELETE ---');
+    console.log('DELETE ' + API_URL + '/' + id);
+
+    fetch(API_URL + '/' + id, {
+        method: 'DELETE'
+    })
+        .then(response => {
+            console.log('Respuesta:', response.status);
+            if (!response.ok) throw new Error('Error al eliminar tarea');
+
+            localTasks = localTasks.filter(t => t.id !== id);
+            renderTasks();
+        })
+        .catch(error => console.error('Error en deleteTask:', error));
 }
 
-
-// ============================================
-// 3. FUNCIONES AUXILIARES Y MANIPULACIÓN DEL DOM
-// ============================================
-
-/**
- * Valida que los campos obligatorios del formulario no estén vacíos
- * @returns {boolean} - true si es válido, false si no
- */
 function validateForm() {
-    // TODO: Validar que userNameInput (Título) no esté vacío
-    // Si está vacío, mostrar el error en userNameError y retornar false.
+    let isValid = true;
+
+    const title = userNameInput.value.trim();
+    if (title === '') {
+        userNameError.textContent = 'El titulo es obligatorio';
+        userNameInput.classList.add('error');
+        isValid = false;
+    } else {
+        userNameError.textContent = '';
+        userNameInput.classList.remove('error');
+    }
+
+    const message = userMessageInput.value.trim();
+    if (message === '') {
+        userMessageError.textContent = 'La descripcion es obligatoria';
+        userMessageInput.classList.add('error');
+        isValid = false;
+    } else {
+        userMessageError.textContent = '';
+        userMessageInput.classList.remove('error');
+    }
+
+    return isValid;
 }
 
-/**
- * Dibuja las tareas guardadas en 'localTasks' dentro del contenedor HTML.
- * Nota: Aquí es donde los datos se transforman en elementos del DOM.
- */
+function createCard(task) {
+    const card = document.createElement('div');
+    card.className = 'message-card';
+    card.dataset.id = task.id;
+
+    const header = document.createElement('div');
+    header.className = 'message-card__header';
+
+    const userDiv = document.createElement('div');
+    userDiv.className = 'message-card__user';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'message-card__avatar';
+    avatar.textContent = task.title.charAt(0).toUpperCase();
+
+    const infoDiv = document.createElement('div');
+
+    const username = document.createElement('div');
+    username.className = 'message-card__username';
+    username.textContent = task.title;
+
+    const timestamp = document.createElement('div');
+    timestamp.className = 'message-card__timestamp';
+    timestamp.textContent = 'ID: ' + task.id;
+
+    infoDiv.appendChild(username);
+    infoDiv.appendChild(timestamp);
+
+    userDiv.appendChild(avatar);
+    userDiv.appendChild(infoDiv);
+
+    const actions = document.createElement('div');
+    actions.className = 'message-card__actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn--edit';
+    editBtn.textContent = 'Editar';
+    editBtn.addEventListener('click', function () {
+        updateTask(task.id);
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn--delete';
+    deleteBtn.textContent = 'Eliminar';
+    deleteBtn.addEventListener('click', function () {
+        deleteTask(task.id);
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+
+    header.appendChild(userDiv);
+    header.appendChild(actions);
+
+    const content = document.createElement('div');
+    content.className = 'message-card__content';
+    content.textContent = task.description || 'Sin descripcion';
+
+    card.appendChild(header);
+    card.appendChild(content);
+
+    return card;
+}
+
 function renderTasks() {
-    // 1. Limpiar el contenedor de mensajes (messagesContainer.innerHTML = '')
-    // 2. Evaluar si localTasks está vacío para mostrar u ocultar el 'emptyState'
-    // 3. Recorrer 'localTasks' con un forEach.
-    // 4. Por cada tarea, crear la estructura HTML e inyectarla.
-    
-    // Pista para los botones de acción dentro del bucle:
-    // Agrega los atributos onclick="updateTask(${task.id})" y onclick="deleteTask(${task.id})"
-    
-    // 5. Actualizar el contador visual (messageCount)
+    messagesContainer.innerHTML = '';
+
+    if (localTasks.length === 0) {
+        emptyState.classList.remove('hidden');
+        messageCount.textContent = '0 Tareas';
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+    messageCount.textContent = localTasks.length + ' Tareas';
+
+    localTasks.forEach(task => {
+        messagesContainer.appendChild(createCard(task));
+    });
 }
 
-
-// ============================================
-// 4. MANEJO Y REGISTRO DE EVENTOS
-// ============================================
-
-/**
- * Maneja el envío del formulario para crear una tarea
- * @param {Event} event - Evento del formulario
- */
 function handleFormSubmit(event) {
-    // TODO: Implementar el manejador
-    // 1. Prevenir comportamiento por defecto (preventDefault)
-    // 2. Validar el formulario
-    // 3. Obtener valores de los inputs
-    // 4. Llamar a createTask() pasando los datos
-    // 5. Limpiar el formulario con messageForm.reset()
+    event.preventDefault();
+
+    if (!validateForm()) return;
+
+    const title = userNameInput.value.trim();
+    const description = userMessageInput.value.trim();
+
+    createTask(title, description);
+
+    messageForm.reset();
+    userNameInput.focus();
 }
 
-// Registro de Eventos
 messageForm.addEventListener('submit', handleFormSubmit);
 
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('Gestor de Tareas iniciado');
+    console.log('  CREATE -> POST');
+    console.log('  READ   -> GET');
+    console.log('  UPDATE -> PATCH');
+    console.log('  DELETE -> DELETE');
+    console.log('');
 
-// ============================================
-// 5. INICIALIZACIÓN
-// ============================================
-
-/**
- * Ejecuta la carga inicial de datos una vez el DOM está listo
- */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ DOM completamente cargado');
-    
-    // TODO: Llamar a la función que trae las tareas de la API para arrancar la app
+    fetchTasks();
 });
